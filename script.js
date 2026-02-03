@@ -1,9 +1,3 @@
-// Add variables for digits
-
-let firstDigit = 0
-let secondDigit = 0
-let operator = ''
-
 // Functions for every action
 function add(digit1, digit2) {
     return digit1 + digit2;
@@ -37,64 +31,62 @@ function operate(oper, num1, num2) {
     }
 }
 
-// DOM Operations
+let firstDigit = null;
+let operator = '';
+let shouldResetScreen = false;
+
 const display = document.querySelector('#display');
-const digitButtons = document.querySelectorAll('.digit')
-const operatorButtons = document.querySelectorAll('.operator')
+const digitButtons = document.querySelectorAll('.digit');
+const operatorButtons = document.querySelectorAll('.operator');
 
-let currentValue = '0';
-
+// Очистка экрана и ввод цифр
 digitButtons.forEach(button => {
     button.addEventListener('click', () => {
-        if (currentValue === '0') {
-            currentValue = button.textContent;
+        if (display.textContent === '0' || shouldResetScreen) {
+            display.textContent = button.textContent;
+            shouldResetScreen = false; 
         } else {
-            currentValue += button.textContent;
+            display.textContent += button.textContent;
         }
-
-        display.textContent = currentValue
-    })
-})
-
-operatorButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        if (operator !== '' && display.textContent !== '0') {
-            secondDigit = display.textContent;
-            const result = operate(operator, firstDigit, secondDigit);
-            firstDigit = result;
-            display.textContent = result;
-        }
-        if (operator === '') {
-            firstDigit = display.textContent;
-        }
-        operator = button.textContent;
-        display.textContent = '0';
-        currentValue = '0';
     });
 });
 
-const equals = document.querySelector('#equals')
-const clear = document.querySelector('#clear')
-
-clear.addEventListener('click', () => {
-    currentValue = '0';
-    display.textContent = '0';
-    firstDigit = 0;
-    secondDigit = 0;
-    operator = ''
+operatorButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        if (operator !== '' && !shouldResetScreen) {
+            const result = operate(operator, firstDigit, display.textContent);
+            display.textContent = result;
+            firstDigit = result;
+        } else {
+            firstDigit = display.textContent;
+        }
+        
+        operator = button.textContent;
+        shouldResetScreen = true;
+    });
 });
 
 equals.addEventListener('click', () => {
-    if (operator === '' || display.textContent === '0') {
-        return;
+    if (operator === '' || shouldResetScreen) return;
+
+    const result = operate(operator, firstDigit, display.textContent);
+    
+    if (result === Infinity || isNaN(result) || result === "Error") {
+        display.textContent = "Error";
+        firstDigit = null;
+        operator = '';
+    } else {
+        display.textContent = result;
+        firstDigit = result;
+        operator = '';
     }
+    
+    shouldResetScreen = true;
+});
 
-    secondDigit = display.textContent;
-    const result = operate(operator, firstDigit, secondDigit);
-
-    display.textContent = result;
-    firstDigit = result;
-
+clear.addEventListener('click', () => {
+    display.textContent = '0';
+    firstDigit = null;
     operator = '';
-    currentValue = '0';
+    shouldResetScreen = false;
 });
